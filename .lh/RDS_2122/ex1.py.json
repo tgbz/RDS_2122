@@ -1,0 +1,18 @@
+{
+    "sourceFile": "ex1.py",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1651500428390,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1651500428390,
+            "name": "Commit-0",
+            "content": "\"\"\"\nTopologia com 1 switch e 4 hosts\n\n         SDN CONTROLLER\n                |\n                |\n                |\n              switch\n    |       |       |       |\n   h1      h2       h3      h4\n                \nAo adicionar o dicionário 'topos' com um valor chave/valor para gerar a nossa nova topologia permite\na passagem de parâmetros para o '--topo=mytopo' pela linha de comandos\n\"\"\"\n\nfrom mininet.topo import Topo\n\nclass MyTopo(Topo):\n    \n    def build(self):\n        # Add hosts and switches\n        h1 = self.addHost('h1')\n        h2 = self.addHost('h2')\n        h3 = self.addHost('h3')\n        h4 = self.addHost('h4')\n        \n        s1 = self.addSwitch('s1')\n        \n        # Add links\n        self.addLink(h1, s1)\n        self.addLink(h2, s1)\n        self.addLink(h3, s1)\n        self.addLink(h4, s1)\n        \ntopos = {'mytopo': (lambda: MyTopo())}"
+        }
+    ]
+}
