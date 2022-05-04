@@ -12,7 +12,15 @@ from ryu.lib.packet import icmp
 from ryu.lib.packet import arp
 
 
-arp_table = {"10.0.1.1": "00:00:00:00:00:01",
+
+class L3Switch(app_manager.RyuApp):
+    OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
+
+
+    def __init__(self, *args, **kwargs):
+        super(L3Switch, self).__init__(*args, **kwargs)
+        self.mac_to_port = {}
+        self.arp_table = {"10.0.1.1": "00:00:00:00:00:01",
             "10.0.1.2": "00:00:00:00:00:02",
             "10.0.1.3": "00:00:00:00:00:03",
             "10.0.2.1": "00:00:00:00:00:04",
@@ -22,13 +30,6 @@ arp_table = {"10.0.1.1": "00:00:00:00:00:01",
             "10.0.3.2": "00:00:00:00:00:08",
             "10.0.3.3": "00:00:00:00:00:09",
 }
-class SimpleSwitch13(app_manager.RyuApp):
-    OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
-
-
-    def __init__(self, *args, **kwargs):
-        super(SimpleSwitch13, self).__init__(*args, **kwargs)
-        self.mac_to_port = {}
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
@@ -36,13 +37,6 @@ class SimpleSwitch13(app_manager.RyuApp):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
 
-        # install table-miss flow entry
-        #
-        # We specify NO BUFFER to max_len of the output action due to
-        # OVS bug. At this moment, if we specify a lesser number, e.g.,
-        # 128, OVS will send Packet-In with invalid buffer_id and
-        # truncated packet data. In that case, we cannot output packets
-        # correctly.  The bug has been fixed in OVS v2.1.0.
         match = parser.OFPMatch()
         actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
                                           ofproto.OFPCML_NO_BUFFER)]
@@ -70,7 +64,7 @@ class SimpleSwitch13(app_manager.RyuApp):
 
     
     def arp_process(self, datapath, eth, a, in_port):
-        r = arp_table.get(a.dst_ip)
+        r = self.arp_table.get(a.dst_ip)
         if r:
             self.logger.info("Matched MAC %s ", r)
             arp_resp = packet.Packet()
@@ -89,10 +83,9 @@ class SimpleSwitch13(app_manager.RyuApp):
             out = parser.OFPPacketOut(datapath=datapath, buffer_id=ofproto.OFP_NO_BUFFER,
                                     in_port=ofproto.OFPP_CONTROLLER, actions=actions, data=arp_resp)
             datapath.send_msg(out)
-            self.logger.info("Proxied ARP Response packet")
+            self.logger.info("Enviado ARP Response packet")
         else: 
-            print(r)
-            print("there was some problem")
+            print("Arp não detectado")
     
     
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
@@ -142,7 +135,6 @@ class SimpleSwitch13(app_manager.RyuApp):
         # install a flow to avoid packet_in next time
         if out_port != ofproto.OFPP_FLOOD:
 
-            # check IP Protocol and create a match for IP
             if eth.ethertype == ether_types.ETH_TYPE_IP:
                 ip = pkt.get_protocol(ipv4.ipv4)
                 srcip = ip.src
@@ -150,9 +142,7 @@ class SimpleSwitch13(app_manager.RyuApp):
                 protocol = ip.proto
                 
                 if protocol == in_proto.IPPROTO_ICMP:
-                    match = parser.OFPMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_src=srcip, ipv4_dst=dstip, ip_proto=protocol)
-                # verify if we have a valid buffer_id, if yes avoid to send both
-                # flow_mod & packet_out
+                    match = parser.OFPMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_src=srcip, ipv4_dst=dstip)
                 if msg.buffer_id != ofproto.OFP_NO_BUFFER:
                     self.add_flow(datapath, 1, match, actions, msg.buffer_id)
                     return
