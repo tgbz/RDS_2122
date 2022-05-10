@@ -42,15 +42,17 @@ def topo():
                
     
     c0 = net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6633, protocols='OpenFlow13')
+    c1 = net.addController('c1', controller=RemoteController, ip='127.0.0.2', port=6633, protocols='OpenFlow13')
+    
     
     net.build()
     
     #inicializacao
     c0.start()
     s1.start([c0])
-    s2.start([c0])
-    s3.start([c0])
-    s4.start([c0])
+    s2.start([c1])
+    s3.start([c1])
+    s4.start([c1])
     
     CLI(net)
     net.stop()
