@@ -1,0 +1,18 @@
+{
+    "sourceFile": "topo.py",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1652276125467,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1652276125467,
+            "name": "Commit-0",
+            "content": "from mininet.net import Mininet\nfrom mininet.log import setLogLevel\nfrom mininet.cli import CLI\nfrom mininet.node import OVSSwitch, RemoteController\n\ndef topo():\n    net = Mininet(controller=RemoteController, switch=OVSSwitch)\n    \n    #4 switches with mac address 00:00:00:00:00:01, 00:00:00:00:00:02, 00:00:00:00:00:03, 00:00:00:00:00:04\n    s1 = net.addSwitch('s1')\n    s2 = net.addSwitch('s2')\n    s3 = net.addSwitch('s3')\n    s4 = net.addSwitch('s4')\n\n\n    \n    \n    \n    #Configuracao dos hosts\n    h1 = net.addHost('h1', ip='10.0.1.2/24', mac='00:00:00:00:01:01', defaultRoute = 'via 10.0.1.1')\n    h2 = net.addHost('h2', ip='10.0.1.3/24', mac='00:00:00:00:01:02', defaultRoute = 'via 10.0.1.1')\n    h3 = net.addHost('h3', ip='10.0.1.4/24', mac='00:00:00:00:01:03', defaultRoute = 'via 10.0.1.1')\n    \n    h4 = net.addHost('h4', ip='10.0.2.2/24', mac='00:00:00:00:01:04', defaultRoute = 'via 10.0.2.1')\n    h5 = net.addHost('h5', ip='10.0.2.3/24', mac='00:00:00:00:01:05', defaultRoute = 'via 10.0.2.1')\n    h6 = net.addHost('h6', ip='10.0.2.4/24', mac='00:00:00:00:01:06', defaultRoute = 'via 10.0.2.1')\n    \n    h7= net.addHost('h7', ip='10.0.3.2/24', mac='00:00:00:00:01:07', defaultRoute = 'via 10.0.3.1')\n    h8 = net.addHost('h8', ip='10.0.3.3/24', mac='00:00:00:00:01:08', defaultRoute = 'via 10.0.3.1')\n    h9 = net.addHost('h9', ip='10.0.3.4/24', mac='00:00:00:00:01:09', defaultRoute = 'via 10.0.3.1')\n    \n    #adicionar links\n    net.addLink(s1, s2, delay='5ms')\n    net.addLink(s1, s3, delay='5ms')\n    net.addLink(s1, s4, delay='5ms')\n    net.addLink(s2,h1)\n    net.addLink(s2,h2)\n    net.addLink(s2,h3)\n    net.addLink(s3,h4,delay='5ms')\n    net.addLink(s3,h5,delay='5ms')\n    net.addLink(s3,h6,delay='5ms')\n    net.addLink(s4,h7,loss=10)\n    net.addLink(s4,h8,loss=10)\n    net.addLink(s4,h9,loss=10)\n               \n    \n    c0 = net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6633, protocols='OpenFlow13')\n    c1 = net.addController('c1', controller=RemoteController, ip='127.0.0.1', port=6634, protocols='OpenFlow13')\n    \n    \n    net.build()\n    \n    #inicializacao\n    c0.start()\n    s1.start([c0])\n    s2.start([c1])\n    s3.start([c1])\n    s4.start([c1])\n    \n    \n    CLI(net)\n    net.stop()\n    \nif __name__ == \"__main__\":\n    topo()\n    setLogLevel('info')\n\n    "
+        }
+    ]
+}

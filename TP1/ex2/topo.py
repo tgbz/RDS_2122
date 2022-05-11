@@ -57,11 +57,6 @@ def topo():
     s3.start([c1])
     s4.start([c1])
     
-    s1.cmd('ip addr add 10.0.0.1/24 dev s1-eth1')
-    s1.cmd('ip addr add 10.0.1.1/24 dev s1-eth2')
-    s1.cmd('ip addr add 10.0.2.1/24 dev s1-eth3')
-    
-    
     CLI(net)
     net.stop()
     
