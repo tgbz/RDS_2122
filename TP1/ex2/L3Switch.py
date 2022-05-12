@@ -86,10 +86,11 @@ class SwitchL3(app_manager.RyuApp):
         for p in ev.msg.body:
             self.router_ports[dpid].update({ p.port_no: p.hw_addr})
         
-        print("Router ",dpid)
+        print("L3 Switches Conectado dpid:",dpid)
         for p in self.router_ports[dpid].keys():
-            print(f"Port {p} has MAC {self.router_ports[dpid][p]}")
-
+            if p < 10:
+                print(f"Porta {p} tem endereço MAC: {self.router_ports[dpid][p]}")
+                print("Cada Port Corresponde a uma subnet")
         print("\n")
 
     #Adcionar flows
@@ -108,7 +109,7 @@ class SwitchL3(app_manager.RyuApp):
                                     match=match, instructions=inst)
         datapath.send_msg(mod)
  
-
+    #Gestão de pacotes
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def packet_in_handler(self, ev):
         msg = ev.msg
@@ -159,7 +160,7 @@ class SwitchL3(app_manager.RyuApp):
                     #Send ICMP network unreachable
                    
 
-
+    #Enviar arp request
     def send_arp_request(self, msg, pkt_ipv4):
         out_port = self.ip_to_port[pkt_ipv4.dst]
         src_mac = self.router_ports[msg.datapath.id][out_port]
@@ -180,7 +181,7 @@ class SwitchL3(app_manager.RyuApp):
 
         self.logger.info("\nRouter %s sending ARP Request from port %s to learn MAC of %s", msg.datapath.id, out_port, pkt_ipv4.dst)
 
-
+    #Enviar pacote
     def send_packet(self, datapath, port, pkt):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
@@ -194,7 +195,7 @@ class SwitchL3(app_manager.RyuApp):
                                   data=data)
         datapath.send_msg(out)
 
-
+    #Gerir arp requests
     def handle_arp(self, msg, port, pkt_ethernet, pkt_arp):
         #ARP packet handling.
         dpid = msg.datapath.id
