@@ -11,6 +11,31 @@ def topo():
     r2 = net.addSwitch('r2')
     r3 = net.addSwitch('r3')
     
+    r1.setMac('00:00:00:00:00:01','r1-eth1')
+    r1.setMac('00:00:00:00:00:02','r1-eth2')
+    r1.setMac('00:00:00:00:00:03','r1-eth3')      
+    
+    r2.setMac('00:00:00:00:00:04','r2-eth1')
+    r2.setMac('00:00:00:00:00:05','r2-eth2')
+    r2.setMac('00:00:00:00:00:06','r2-eth3')
+    
+    r3.setMac('00:00:00:00:00:07','r3-eth1')
+    r3.setMac('00:00:00:00:00:08','r3-eth2')
+    r3.setMac('00:00:00:00:00:09','r3-eth3')
+    
+    s1.setMac('00:00:00:00:02:01','s1-eth1')
+    s1.setMac('00:00:00:00:02:02','s1-eth2')
+    s1.setMac('00:00:00:00:02:03','s1-eth3')
+    
+    s2.setMac('00:00:00:00:02:04','s2-eth1')
+    s2.setMac('00:00:00:00:02:05','s2-eth2')
+    s2.setMac('00:00:00:00:02:06','s2-eth3')
+    
+    s3.setMac('00:00:00:00:02:07','s3-eth1')
+    s3.setMac('00:00:00:00:02:08','s3-eth2')
+    s3.setMac('00:00:00:00:02:09','s3-eth3')
+    
+
     
     s1 = net.addSwitch('s1')
     s2 = net.addSwitch('s2')
