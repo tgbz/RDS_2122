@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 8,
+            "activePatchIndex": 9,
             "patches": [
                 {
                     "date": 1652202017029,
@@ -40,6 +40,10 @@
                 {
                     "date": 1652372863909,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -89,9 +89,9 @@\n         print(\"L3 Switches Conectado dpid:\",dpid)\n         for p in self.router_ports[dpid].keys():\n             if p < 10:\n                 print(f\"Porta {p} tem endereço MAC: {self.router_ports[dpid][p]}\")\n-\n+                print(\"Cada Port Corresponde a uma subnet\")\n         print(\"\\n\")\n \n     #Adcionar flows\n     def add_flow(self, datapath, priority, match, actions, buffer_id=None):\n"
+                },
+                {
+                    "date": 1655541396910,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,4 +1,5 @@\n+from email import parser\n from ryu.base import app_manager\n from ryu.controller import ofp_event\n from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER\n from ryu.controller.handler import set_ev_cls\n@@ -264,8 +265,29 @@\n                                    csum=0,\n                                    data=pkt_icmp.data))\n         self.send_packet(msg.datapath, port, pkt)\n         self.logger.info('Send ICMP echo reply to [%s].', src_ip)\n+        \n+        match = parser.OFPMatch(in_port = port,\n+                                eth_type=0x0800,\n+                                ip_proto=pkt_ipv4.proto,\n+                                ipv4_src=pkt_ipv4.src,\n+                                ipv4_dst=pkt_ipv4.dst)\n+        \n+        #flow mods\n+        set_eth_src = parser.OFPActionSetField(eth_src=pkt_ethernet.src)\n+        set_eth_dst = parser.OFPActionSetField(eth_src=pkt_ethernet.src)\n+        set_ip_proto = parser.OFPActionSetField(ip_proto=pkt_ipv4.proto)\n+        set_ip_src = parser.OFPActionSetField(ipv4_src=pkt_ipv4.src)\n+        set_ip_dst = parser.OFPActionSetField(ipv4_dst=pkt_ipv4.dst)\n+        set_icmp_type = parser.OFPActionSetField(icmpv4_type=0x00)\n+        actions = [set_eth_src, set_eth_dst, set_ip_src, set_ip_dst, set_icmp_type, parser.OFPActionOutput(port)]\n+        \n+        self.add_flow(msg.datapath, 2, match, actions)\n+        \n+        self.logger.info(\"Entrada na flow table adicionada!\")\n+        \n+        \n \n \n     def send_icmp_unreachable(self, msg, port, pkt_ethernet, pkt_ipv4):\n         port_mac = self.router_ports[msg.datapath.id][port]\n"
                 }
             ],
             "date": 1652202017029,

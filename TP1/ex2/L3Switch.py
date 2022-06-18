@@ -1,3 +1,4 @@
+from email import parser
 from ryu.base import app_manager
 from ryu.controller import ofp_event
 from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER
@@ -265,8 +266,27 @@ class SwitchL3(app_manager.RyuApp):
                                    data=pkt_icmp.data))
         self.send_packet(msg.datapath, port, pkt)
         self.logger.info('Send ICMP echo reply to [%s].', src_ip)
-
-
+        
+        match = parser.OFPMatch(in_port = port,
+                                eth_type=0x0800,
+                                ip_proto=pkt_ipv4.proto,
+                                ipv4_src=pkt_ipv4.src,
+                                ipv4_dst=pkt_ipv4.dst)
+        
+        #flow mods
+        set_eth_src = parser.OFPActionSetField(eth_src=pkt_ethernet.src)
+        set_eth_dst = parser.OFPActionSetField(eth_src=pkt_ethernet.src)
+        set_ip_proto = parser.OFPActionSetField(ip_proto=pkt_ipv4.proto)
+        set_ip_src = parser.OFPActionSetField(ipv4_src=pkt_ipv4.src)
+        set_ip_dst = parser.OFPActionSetField(ipv4_dst=pkt_ipv4.dst)
+        set_icmp_type = parser.OFPActionSetField(icmpv4_type=0x00)
+        actions = [set_eth_src, set_eth_dst, set_ip_src, set_ip_dst, set_icmp_type, parser.OFPActionOutput(port)]
+        
+        self.add_flow(msg.datapath, 2, match, actions)
+        
+        self.logger.info("Entrada na flow table adicionada!")
+        
+        
     def send_icmp_unreachable(self, msg, port, pkt_ethernet, pkt_ipv4):
         port_mac = self.router_ports[msg.datapath.id][port]
 
