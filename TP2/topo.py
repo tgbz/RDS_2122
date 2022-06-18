@@ -87,10 +87,40 @@ def topo():
     net.addLink(s3, h6)
     net.addLink(s3, h7)
     net.addLink(s3, h8)
-    
-    
-    
+        
+        
+    #addr intra-routers
 
+    #Configuracao dos routers...
+    r1.cmd('ifconfig r1-eth1 0')
+    r1.cmd('ifconfig r1-eth2 0')
+    r1.cmd('ifconfig r1-eth3 0')
+    r1.cmd("ip addr add 10.0.1.1/24 brd + dev r1-eth1")#Link entre R1-S1
+    r1.cmd("ip addr add 20.0.0.253/24 brd + dev r1-eth2") #Link entre R1-R2
+    r1.cmd("ip addr add 30.0.0.253/24 brd + dev r1-eth3") #Link entre R1-R3
+    r1.cmd('echo 1 > /proc/sys/net/ipv4/ip_forward') 
+    
+    r2.cmd('ifconfig r1-eth1 0')
+    r2.cmd('ifconfig r1-eth2 0')
+    r2.cmd('ifconfig r1-eth3 0')
+    r2.cmd("ip addr add 10.0.2.1/24 brd + dev r1-eth1")#Link entre R2-S2
+    r2.cmd("ip addr add 20.0.0.254/24 brd + dev r1-eth2") #Link entre R1-R2
+    r2.cmd("ip addr add 40.0.0.253/24 brd + dev r1-eth3") #Link entre R2-R3
+    r2.cmd('echo 1 > /proc/sys/net/ipv4/ip_forward') 
+
+
+    r3.cmd('ifconfig r1-eth2 0')
+    r3.cmd('ifconfig r1-eth3 0')
+    r3.cmd('ifconfig r1-eth1 0')
+    r3.cmd("ip addr add 10.0.1.3/24 brd + dev r1-eth1")#Link entre R3-S3
+    r3.cmd("ip addr add 30.0.0.254/24 brd + dev r1-eth2") #Link entre R1-R3
+    r3.cmd("ip addr add 40.0.0.254/24 brd + dev r1-eth3") #Link entre R2-R3
+    r3.cmd('echo 1 > /proc/sys/net/ipv4/ip_forward') 
+
+    
+    
+    
+    
     
     c0 = net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6633, protocols='OpenFlow13')
     c1 = net.addController('c1', controller=RemoteController, ip='127.0.0.1', port=6634, protocols='OpenFlow13')

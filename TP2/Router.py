@@ -39,12 +39,13 @@ class SwitchL3(app_manager.RyuApp):
         - packet_queue: dicionario fila de pacotes arp
     """
 
+
     def __init__(self, *args, **kwargs):
         super(SwitchL3, self).__init__(*args, **kwargs)
         self.ip_to_mac = {}
-        self.ip_to_port = {'10.0.1.2' : 1, '10.0.1.3' : 1, '10.0.1.4' : 1,
-                           '10.0.2.2' : 2, '10.0.2.3' : 2, '10.0.2.4' : 2,
-                           '10.0.3.2' : 3, '10.0.3.3' : 3, '10.0.3.4' : 3,}
+        self.ip_to_port = {'10.0.1.2' : 1, '20.0.0.253' : 1, '30.0.0.253' : 1,
+                           '10.0.2.2' : 2, '20.0.0.254' : 2, '40.0.0.253' : 2,
+                           '10.0.3.2' : 3, '30.0.0.254' : 3, '40.0.0.254' : 3,}
         self.router_ports = {}
         self.router_ports_to_ip = {1 : '10.0.1.1', 2 : '10.0.2.1', 3 : '10.0.3.1'}
         
