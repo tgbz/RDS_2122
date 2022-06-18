@@ -52,6 +52,7 @@ def topo():
     
     #inicializacao
     c0.start()
+    c1.start()
     s1.start([c0])
     s2.start([c1])
     s3.start([c1])
