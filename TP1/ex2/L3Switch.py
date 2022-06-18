@@ -273,16 +273,24 @@ class SwitchL3(app_manager.RyuApp):
                                 ipv4_src=pkt_ipv4.src,
                                 ipv4_dst=pkt_ipv4.dst)
         
-        #flow mods
+        #Inversao de endereços IPv4 e MAC para resopnder, e o tipo de código de ICMP alterados para reply.
+        set_csum = parser.OFPActionSetField(ipv4_csum=0)
         set_eth_src = parser.OFPActionSetField(eth_src=pkt_ethernet.src)
         set_eth_dst = parser.OFPActionSetField(eth_src=pkt_ethernet.src)
-        set_ip_proto = parser.OFPActionSetField(ip_proto=pkt_ipv4.proto)
         set_ip_src = parser.OFPActionSetField(ipv4_src=pkt_ipv4.src)
         set_ip_dst = parser.OFPActionSetField(ipv4_dst=pkt_ipv4.dst)
-        set_icmp_type = parser.OFPActionSetField(icmpv4_type=0x00)
-        actions = [set_eth_src, set_eth_dst, set_ip_src, set_ip_dst, set_icmp_type, parser.OFPActionOutput(port)]
+        set_icmp_type = parser.OFPActionSetField(icmpv4_type=0)
+        set_icmp_code = parser.OFPActionSetField(icmpv4_code=0)
+        actions = [set_csum, set_eth_src, set_eth_dst, set_ip_src, set_ip_dst, set_icmp_type, set_icmp_code, parser.OFPActionOutput(port)]
         
         self.add_flow(msg.datapath, 2, match, actions)
+        out = msg.ofproto_parser.OFPPacketOut(datapath=msg.datapath,
+                                              buffer_id=0xffffffff,
+                                              in_port=msg.ofproto.OFPP_CONTROLLER,
+                                              actions=actions,
+                                              data=packet)
+        msg.datapath.send_msg(out)
+        
         
         self.logger.info("Entrada na flow table adicionada!")
         
