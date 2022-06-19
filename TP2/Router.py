@@ -17,7 +17,7 @@ from ryu.lib.packet import packet_base
 from ryu.lib.packet import tcp
 from ryu.lib.packet import udp
 from ryu.ofproto import ether
-
+import time
 ETHERNET = ethernet.ethernet.__name__
 IPV4 = ipv4.ipv4.__name__
 ARP = arp.arp.__name__
@@ -45,18 +45,17 @@ class SwitchL3(app_manager.RyuApp):
         self.ip_to_mac = {}
         self.ip_to_mac = {}
         self.ip_to_port = {  
-                          '0000000000000004':  {'10.0.1.2' : 1, '10.0.1.3' : 1, '10.0.1.4' : 1},
-                          '0000000000000005' : {'10.0.2.2' : 2, '10.0.2.3' : 2, '10.0.2.4' : 2},
-                          '0000000000000006' : {'10.0.3.2': 3, '10.0.3.3' : 3, '10.0.3.4' : 3}
-                          }
-    
+                            1:{'10.0.1.2' : 1, '10.0.1.3' : 1, '10.0.1.4' : 1, '20.0.0.253' : 2, '30.0.0.253':3},
+                            2:{'10.0.2.2' : 1, '10.0.2.3' : 1, '10.0.2.4' : 1, '20.0.0.254' : 2, '40.0.0.253':3},
+                            3:{'10.0.3.2' : 3, '10.0.3.3' : 3, '10.0.3.4' : 3, '30.0.0.253' : 2, '40.0.0.253':3}
+                        }
+
         self.router_ports = {}
         self.router_ports_to_ip = {
-                                    '0000000000000001':{1:'10.0.1.1', 2:'20.0.0.253', 3:'30.0.0.253'},
-                                    '0000000000000002':{1:'10.0.2.1', 2:'20.0.0.254', 3:'40.0.0.253'}, 
-                                    '0000000000000003':{1:'10.0.3.1', 2:'30.0.0.254', 3:'40.0.0.254'}
+                                    1 :{1:'10.0.1.1', 2:'20.0.0.253', 3:'30.0.0.253'},
+                                    2 :{1:'10.0.2.1', 2:'20.0.0.254', 3:'40.0.0.253'}, 
+                                    3 :{1:'10.0.3.1', 2:'30.0.0.254', 3:'40.0.0.254'}
                                   }
-        
         self.packet_queue = {}
  
         
@@ -141,6 +140,7 @@ class SwitchL3(app_manager.RyuApp):
             return
         pkt_ipv4 = pkt.get_protocol(ipv4.ipv4)
         if pkt_ipv4:
+       
             if pkt_ipv4.dst in self.router_ports_to_ip[dpid].values():
                 pkt_icmp = pkt.get_protocol(icmp.icmp)
                 if pkt_icmp:
