@@ -7,9 +7,9 @@ def topo():
     net = Mininet(controller=RemoteController, switch=OVSSwitch)
     
     #4 switches with mac address 00:00:00:00:00:01, 00:00:00:00:00:02, 00:00:00:00:00:03, 00:00:00:00:00:04
-    r1 = net.addSwitch('r1',dpid='0000000000000001')
-    r2 = net.addSwitch('r2',dpid='0000000000000002')
-    r3 = net.addSwitch('r3',dpid='0000000000000003')
+    r1 = net.addSwitch('r1', ip = '10.0.1.1',dpid='0000000000000001')
+    r2 = net.addSwitch('r2', ip = '10.0.2.1',dpid='0000000000000002')
+    r3 = net.addSwitch('r3', ip = '10.0.3.1',dpid='0000000000000003')
     
     
     s1 = net.addSwitch('s1',dpid='0000000000000004')
@@ -22,19 +22,19 @@ def topo():
     
     #Configuracao dos hosts
     #R&D Division (NETWORK A)
-    h1 = net.addHost('h1', ip='10.0.1.2/24', mac='00:00:00:00:01:01', defaultRoute = 'via 10.0.1.1')
-    h2 = net.addHost('h2', ip='10.0.1.3/24', mac='00:00:00:00:01:02', defaultRoute = 'via 10.0.1.1')
-    h3 = net.addHost('h3', ip='10.0.1.4/24', mac='00:00:00:00:01:03', defaultRoute = 'via 10.0.1.1')
+    h1 = net.addHost('h1', ip='10.0.1.2/24', mac='00:00:00:00:01:01', defaultRoute = 'via 10.0.1.254')
+    h2 = net.addHost('h2', ip='10.0.1.3/24', mac='00:00:00:00:01:02', defaultRoute = 'via 10.0.1.254')
+    h3 = net.addHost('h3', ip='10.0.1.4/24', mac='00:00:00:00:01:03', defaultRoute = 'via 10.0.1.254')
    
     #Client Support Division (NETWORK B)
-    h4 = net.addHost('h4', ip='10.0.2.2/24', mac='00:00:00:00:01:04', defaultRoute = 'via 10.0.2.1')
-    h5 = net.addHost('h5', ip='10.0.2.3/24', mac='00:00:00:00:01:05', defaultRoute = 'via 10.0.2.1')
-    h6 = net.addHost('h6', ip='10.0.2.4/24', mac='00:00:00:00:01:06', defaultRoute = 'via 10.0.2.1')
+    h4 = net.addHost('h4', ip='10.0.2.2/24', mac='00:00:00:00:01:04', defaultRoute = 'via 10.0.2.254')
+    h5 = net.addHost('h5', ip='10.0.2.3/24', mac='00:00:00:00:01:05', defaultRoute = 'via 10.0.2.254')
+    h6 = net.addHost('h6', ip='10.0.2.4/24', mac='00:00:00:00:01:06', defaultRoute = 'via 10.0.2.254')
     
     #Executive Division (NETWORK C)
-    h7= net.addHost('h7', ip='10.0.3.2/24', mac='00:00:00:00:01:07', defaultRoute = 'via 10.0.3.1')
-    h8 = net.addHost('h8', ip='10.0.3.3/24', mac='00:00:00:00:01:08', defaultRoute = 'via 10.0.3.1')
-    h9 = net.addHost('h9', ip='10.0.3.4/24', mac='00:00:00:00:01:09', defaultRoute = 'via 10.0.3.1')
+    h7= net.addHost('h7', ip='10.0.3.2/24', mac='00:00:00:00:01:07', defaultRoute = 'via 10.0.3.254')
+    h8 = net.addHost('h8', ip='10.0.3.3/24', mac='00:00:00:00:01:08', defaultRoute = 'via 10.0.3.254')
+    h9 = net.addHost('h9', ip='10.0.3.4/24', mac='00:00:00:00:01:09', defaultRoute = 'via 10.0.3.254')
     
     
     #Execute webServer on web host
@@ -66,34 +66,6 @@ def topo():
         
     #addr intra-routers
 
-    #Configuracao dos routers...
-    r1.cmd('ifconfig r1-eth1 0')
-    r1.cmd('ifconfig r1-eth2 0')
-    r1.cmd('ifconfig r1-eth3 0')
-    r1.cmd("ip addr add 10.0.1.1/24 brd + dev r1-eth1")#Link entre R1-S1
-    r1.cmd("ip addr add 20.0.0.253/24 brd + dev r1-eth2") #Link entre R1-R2
-    r1.cmd("ip addr add 30.0.0.253/24 brd + dev r1-eth3") #Link entre R1-R3
-    r1.cmd('echo 1 > /proc/sys/net/ipv4/ip_forward') 
-    
-    r2.cmd('ifconfig r1-eth1 0')
-    r2.cmd('ifconfig r1-eth2 0')
-    r2.cmd('ifconfig r1-eth3 0')
-    r2.cmd("ip addr add 10.0.2.1/24 brd + dev r1-eth1")#Link entre R2-S2
-    r2.cmd("ip addr add 20.0.0.254/24 brd + dev r1-eth2") #Link entre R1-R2
-    r2.cmd("ip addr add 40.0.0.253/24 brd + dev r1-eth3") #Link entre R2-R3
-    r2.cmd('echo 1 > /proc/sys/net/ipv4/ip_forward') 
-
-
-    r3.cmd('ifconfig r1-eth2 0')
-    r3.cmd('ifconfig r1-eth3 0')
-    r3.cmd('ifconfig r1-eth1 0')
-    r3.cmd("ip addr add 10.0.1.3/24 brd + dev r1-eth1")#Link entre R3-S3
-    r3.cmd("ip addr add 30.0.0.254/24 brd + dev r1-eth2") #Link entre R1-R3
-    r3.cmd("ip addr add 40.0.0.254/24 brd + dev r1-eth3") #Link entre R2-R3
-    r3.cmd('echo 1 > /proc/sys/net/ipv4/ip_forward') 
-
-    
-    
     
     
     
