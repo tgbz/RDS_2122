@@ -45,16 +45,21 @@ class SwitchL3(app_manager.RyuApp):
         self.ip_to_mac = {}
         self.ip_to_mac = {}
         self.ip_to_port = {  
-                            1:{'10.0.1.2' : 1, '10.0.1.3' : 1, '10.0.1.4' : 1, '10.0.2.1' : 2, '10.0.3.1' :3},
-                            2:{'10.0.2.2' : 1, '10.0.2.3' : 1, '10.0.2.4' : 1, '10.0.1.1' : 2, '10.0.3.1':3},
-                            3:{'10.0.3.2' : 1, '10.0.3.3' : 1, '10.0.3.4' : 1, '10.0.1.1' : 2, '10.0.2.1':3}
-                        }
-
+                            1:{'10.0.1.2':3, '10.0.1.3':3, '10.0.1.4':3,
+                               '10.0.2.50':1,
+                               '10.0.3.50':2,},
+                            2:{'10.0.1.51':1,
+                               '10.0.3.51':2,
+                               '10.0.2.2': 3, '10.0.2.3':3, '10.0.2.3':3},
+                            3: {'10.0.1.52':1,
+                                '10.0.2.52:':2,
+                                '10.0.3.2':3, '10.0.3.3':3, '10.0.3.4':3}
+                            }
         self.router_ports = {}
         self.router_ports_to_ip = {
-                                    1 :{1:'10.0.1.254', 2:'10.0.3.254', 3:'10.0.2.254'},
-                                    2 :{1:'10.0.2.254', 2:'10.0.1.254', 3:'10.0.3.254'}, 
-                                    3 :{1:'10.0.3.254', 2:'10.0.2.254', 3:'10.0.1.254'}
+                                    1 :{3:'10.0.1.1', 1:'10.0.2.50', 2:'10.0.3.50'},
+                                    2 :{1:'10.0.1.51', 2:'10.0.3.51', 3:'10.0.2.1'}, 
+                                    3 :{1:'10.0.1.52', 2:'10.0.2.52', 3:'10.0.3.1'}
                                   }
         self.packet_queue = {}
  
@@ -169,7 +174,6 @@ class SwitchL3(app_manager.RyuApp):
 
                 else:
                     self.logger.info("\nPacket received by router %s from %s to %s (unknown destination)", dpid, pkt_ipv4.src, pkt_ipv4.dst)
-                    print(self.router_ports_to_ip[dpid])
                     time.sleep(2)
                     self.send_icmp_unreachable(msg, port, pkt_ethernet, pkt_ipv4)
                     #Send ICMP network unreachable
@@ -215,7 +219,8 @@ class SwitchL3(app_manager.RyuApp):
     def handle_arp(self, msg, port, pkt_ethernet, pkt_arp):
         #ARP packet handling.
         dpid = msg.datapath.id
-
+        print(self.router_ports_to_ip[dpid].values())
+        time.sleep(2)
         if pkt_arp.dst_ip in self.router_ports_to_ip[dpid].values() and pkt_arp.opcode == arp.ARP_REQUEST:
 
             self.logger.info("\nARP Request received by router %s from %s in port %s ", dpid, pkt_arp.src_ip, port)
@@ -256,7 +261,6 @@ class SwitchL3(app_manager.RyuApp):
             #cycle through all packets to this ip and forward them
             return
         else:
-            print(print)
             self.logger.info("\nARP Packet dropped router %s, %s not an interface ip", dpid, pkt_arp.dst_ip)
             
             #Any other case pass
