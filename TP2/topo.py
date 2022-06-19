@@ -7,31 +7,31 @@ def topo():
     net = Mininet(controller=RemoteController, switch=OVSSwitch)
     
     #4 switches with mac address 00:00:00:00:00:01, 00:00:00:00:00:02, 00:00:00:00:00:03, 00:00:00:00:00:04
-    r1 = net.addSwitch('r1')
-    r2 = net.addSwitch('r2')
-    r3 = net.addSwitch('r3')
+    r1 = net.addSwitch('r1',dpid='0000000000000001')
+    r2 = net.addSwitch('r2',dpid='0000000000000002')
+    r3 = net.addSwitch('r3',dpid='0000000000000003')
     
     
-    s1 = net.addSwitch('s1')
-    s2 = net.addSwitch('s2')
-    s3 = net.addSwitch('s3')
+    s1 = net.addSwitch('s1',dpid='0000000000000004')
+    s2 = net.addSwitch('s2',dpid='0000000000000005')
+    s3 = net.addSwitch('s3',dpid='0000000000000006')
 
 
     
     
     
     #Configuracao dos hosts
-    #R&D Division
+    #R&D Division (NETWORK A)
     h1 = net.addHost('h1', ip='10.0.1.2/24', mac='00:00:00:00:01:01', defaultRoute = 'via 10.0.1.1')
     h2 = net.addHost('h2', ip='10.0.1.3/24', mac='00:00:00:00:01:02', defaultRoute = 'via 10.0.1.1')
     h3 = net.addHost('h3', ip='10.0.1.4/24', mac='00:00:00:00:01:03', defaultRoute = 'via 10.0.1.1')
    
-    #Client Support Division
+    #Client Support Division (NETWORK B)
     h4 = net.addHost('h4', ip='10.0.2.2/24', mac='00:00:00:00:01:04', defaultRoute = 'via 10.0.2.1')
     h5 = net.addHost('h5', ip='10.0.2.3/24', mac='00:00:00:00:01:05', defaultRoute = 'via 10.0.2.1')
     h6 = net.addHost('h6', ip='10.0.2.4/24', mac='00:00:00:00:01:06', defaultRoute = 'via 10.0.2.1')
     
-    #Executive Division
+    #Executive Division (NETWORK C)
     h7= net.addHost('h7', ip='10.0.3.2/24', mac='00:00:00:00:01:07', defaultRoute = 'via 10.0.3.1')
     h8 = net.addHost('h8', ip='10.0.3.3/24', mac='00:00:00:00:01:08', defaultRoute = 'via 10.0.3.1')
     h9 = net.addHost('h9', ip='10.0.3.4/24', mac='00:00:00:00:01:09', defaultRoute = 'via 10.0.3.1')
