@@ -45,7 +45,7 @@ def topo():
   
       
     net.addLink(r1, r2)
-    net.addLink(r1, r3)
+    net.addLink(r1, r3, delay='5ms')
     net.addLink(r2, r3)
     
   
