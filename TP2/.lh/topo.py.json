@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 6,
+            "activePatchIndex": 7,
             "patches": [
                 {
                     "date": 1655641561530,
@@ -32,6 +32,10 @@
                 {
                     "date": 1655675652412,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -40,12 +40,9 @@\n     #Execute webServer on web host\n     #web.cmd('web python -m http.server 5555 &')\n     \n     #links intra-Routers\n-    net.addLink(r1, r2)\n-    net.addLink(r1, r3)\n-    net.addLink(r2, r3)\n-    \n+  \n     #R&D Division - Network A\n     net.addLink(r1, s1)\n     net.addLink(s1, h1)\n     net.addLink(s1, h2)\n@@ -61,8 +58,13 @@\n     net.addLink(r3, s3)\n     net.addLink(s3, h7)\n     net.addLink(s3, h8)\n     net.addLink(s3, h9)\n+    \n+    net.addLink(r1, r2)\n+    net.addLink(r1, r3)\n+    net.addLink(r2, r3)\n+    \n \n \n     c0 = net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6633, protocols='OpenFlow13')\n     c1 = net.addController('c1', controller=RemoteController, ip='127.0.0.1', port=6634, protocols='OpenFlow13')\n"
+                },
+                {
+                    "date": 1655689612961,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -41,8 +41,15 @@\n     #web.cmd('web python -m http.server 5555 &')\n     \n     #links intra-Routers\n   \n+  \n+      \n+    net.addLink(r1, r2)\n+    net.addLink(r1, r3)\n+    net.addLink(r2, r3)\n+    \n+  \n     #R&D Division - Network A\n     net.addLink(r1, s1)\n     net.addLink(s1, h1)\n     net.addLink(s1, h2)\n@@ -58,13 +65,9 @@\n     net.addLink(r3, s3)\n     net.addLink(s3, h7)\n     net.addLink(s3, h8)\n     net.addLink(s3, h9)\n-    \n-    net.addLink(r1, r2)\n-    net.addLink(r1, r3)\n-    net.addLink(r2, r3)\n-    \n+  \n \n \n     c0 = net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6633, protocols='OpenFlow13')\n     c1 = net.addController('c1', controller=RemoteController, ip='127.0.0.1', port=6634, protocols='OpenFlow13')\n"
                 }
             ],
             "date": 1655641561530,

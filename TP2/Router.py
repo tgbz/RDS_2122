@@ -43,31 +43,31 @@ class SwitchL3(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
         super(SwitchL3, self).__init__(*args, **kwargs)
         
-        #Port1 -> Hosts
-        #Port2 -> R1-R2
-        #Port3 -> R1-R3
+        #Port1 -> R1-R2
+        #Port2 -> R1-R3
+        #Port3 -> Hosts
         self.ip_to_port = dict()
         self.ip_to_port[1] = {'10.0.1.2' : 3, '10.0.1.3' : 3, '10.0.1.4' : 3,
                               '10.0.2.2' : 1, '10.0.2.3' : 1, '10.0.2.4' : 1,
                               '10.0.3.2' : 2, '10.0.3.3' : 2, '10.0.3.4' : 2,}
         
-        #Port1 -> Hosts
-        #Port2 -> R2-R1
-        #Port3 -> R2-R3
+        #Port1 -> R2-R1
+        #Port2 -> R2-R3
+        #Port3 -> Hosts
         self.ip_to_port[2] = {'10.0.1.2' : 1, '10.0.1.3' : 1, '10.0.1.4' : 1,
                               '10.0.2.2' : 3, '10.0.2.3' : 3, '10.0.2.4' : 3,
                               '10.0.3.2' : 2, '10.0.3.3' : 2, '10.0.3.4' : 2,}
-        #Port1 -> Hosts
-        #Port2 -> R3-R1
-        #Port3 -> R3-R2
-        self.ip_to_port[3] = {'10.0.1.2' : 2, '10.0.1.3' : 2, '10.0.1.4' : 2,
-                              '10.0.2.2' : 1, '10.0.2.3' : 1, '10.0.2.4' : 1,
+        #Port1 -> R3-R1
+        #Port2 -> R3-R2
+        #Port3 -> Hosts
+        self.ip_to_port[3] = {'10.0.2.2' : 2, '10.0.2.3' : 2, '10.0.2.4' : 2,
+                              '10.0.1.2' : 1, '10.0.1.3' : 1, '10.0.1.4' : 1,
                               '10.0.3.2' : 3, '10.0.3.3' : 3, '10.0.3.4' : 3,}
         
         self.router_ports_to_ip = dict()
-        self.router_ports_to_ip[1] = {1 : '10.0.4.1', 2 : '10.0.6.2', 3 : '10.0.1.1'}
-        self.router_ports_to_ip[2] = {1 : '10.0.4.2', 2 : '10.0.5.1', 3 : '10.0.2.1'}
-        self.router_ports_to_ip[2] = {1 : '10.0.5.2', 2 : '10.0.6.1', 3 : '10.0.3.1'}
+        self.router_ports_to_ip[1] = {1 : '30.0.1.1', 2 : '40.0.1.1', 3 : '10.0.1.1'}
+        self.router_ports_to_ip[2] = {1 : '30.0.1.2', 2 : '50.0.1.2', 3 : '10.0.2.1'}
+        self.router_ports_to_ip[3] = {1 : '40.0.1.2', 2 : '50.0.1.1', 3 : '10.0.3.1'}
         
         self.ip_to_mac = dict()
         self.packet_queue = dict()
@@ -193,6 +193,8 @@ class SwitchL3(app_manager.RyuApp):
         out_port = self.ip_to_port[dpid][pkt_ipv4.dst]
         src_mac = self.router_ports[msg.datapath.id][out_port]
         src_ip = self.router_ports_to_ip[dpid][out_port]
+        
+        print("pkt_ipv4.dest:", pkt_ipv4.dst, "out_port:",out_port, " src_mac:",src_mac, " src_ip:",src_ip)
 
 
         pkt = packet.Packet()
@@ -228,51 +230,53 @@ class SwitchL3(app_manager.RyuApp):
         #ARP packet handling.
         dpid = msg.datapath.id
 
-        for router in self.router_ports_to_ip:
-            if pkt_arp.dst_ip in self.router_ports_to_ip[router].values() and pkt_arp.opcode == arp.ARP_REQUEST:
-                print(pkt_arp.dst_ip)
-                self.logger.info("\nARP Request received by router %s from %s in port %s ", dpid, pkt_arp.src_ip, port)
+        tp = pkt_arp.dst_ip[:-2]
+        tmp = self.router_ports_to_ip[dpid].values()
+        #remove the last 2 elements of each tmp element, each element is a string
+        tmp = [x[:-2] for x in tmp]
+        if tp in tmp and pkt_arp.opcode == arp.ARP_REQUEST:
+            self.logger.info("\nARP Request received by router %s from %s in port %s ", dpid, pkt_arp.src_ip, port)
 
-                port_mac = self.router_ports[router][port]
+            port_mac = self.router_ports[dpid][port]
 
-                pkt = packet.Packet()
-                pkt.add_protocol(ethernet.ethernet(ethertype=ether.ETH_TYPE_ARP,
-                                            dst=pkt_ethernet.src,
-                                            src=port_mac))
-                pkt.add_protocol(arp.arp(opcode=arp.ARP_REPLY,
-                                    src_mac=port_mac,
-                                    src_ip=pkt_arp.dst_ip,
-                                    dst_mac=pkt_arp.src_mac,
-                                    dst_ip=pkt_arp.src_ip))
-                self.send_packet(msg.datapath, port, pkt)
+            pkt = packet.Packet()
+            pkt.add_protocol(ethernet.ethernet(ethertype=ether.ETH_TYPE_ARP,
+                                        dst=pkt_ethernet.src,
+                                        src=port_mac))
+            pkt.add_protocol(arp.arp(opcode=arp.ARP_REPLY,
+                                src_mac=port_mac,
+                                src_ip=pkt_arp.dst_ip,
+                                dst_mac=pkt_arp.src_mac,
+                                dst_ip=pkt_arp.src_ip))
+            self.send_packet(msg.datapath, port, pkt)
 
-                self.logger.info("ARP Reply sent by router %s from port %s with MAC %s to %s", dpid, port, port_mac, pkt_arp.src_ip)
+            self.logger.info("ARP Reply sent by router %s from port %s with MAC %s to %s", dpid, port, port_mac, pkt_arp.src_ip)
 
-                return
-            elif pkt_arp.dst_ip in self.router_ports_to_ip[router].values() and pkt_arp.opcode == arp.ARP_REPLY:
-                self.logger.info("\nARP Reply received by router %s from %s with MAC %s", dpid, pkt_arp.src_ip, pkt_arp.src_mac)
-                self.ip_to_mac.setdefault(dpid, {})
-                self.ip_to_mac[dpid][pkt_arp.src_ip] = pkt_arp.src_mac
+            return
+        elif tp in tmp and pkt_arp.opcode == arp.ARP_REPLY:
+            self.logger.info("\nARP Reply received by router %s from %s with MAC %s", dpid, pkt_arp.src_ip, pkt_arp.src_mac)
+            self.ip_to_mac.setdefault(dpid, {})
+            self.ip_to_mac[dpid][pkt_arp.src_ip] = pkt_arp.src_mac
 
-                for m in self.packet_queue[dpid][pkt_arp.src_ip]:
-                    dpid = m.datapath.id        
-                    pkt = packet.Packet(m.data)
-                    pkt_eth = pkt.get_protocol(ethernet.ethernet)
-                    pkt_v4 = pkt.get_protocol(ipv4.ipv4)
-                    out_port = self.ip_to_port[dpid][pkt_arp.src_ip]
-                    pkt_eth.src = self.router_ports[dpid][out_port]
-                    pkt_eth.dst = self.ip_to_mac[dpid][pkt_arp.src_ip]
-                    self.send_packet(msg.datapath,out_port,pkt)
-                    self.logger.info("Router %s sent queued packet from %s to %s", dpid, pkt_v4.src, pkt_v4.dst)
+            for m in self.packet_queue[pkt_arp.src_ip]:
+                dpid = m.datapath.id        
+                pkt = packet.Packet(m.data)
+                pkt_eth = pkt.get_protocol(ethernet.ethernet)
+                pkt_v4 = pkt.get_protocol(ipv4.ipv4)
+                out_port = self.ip_to_port[dpid][pkt_arp.src_ip]
+                pkt_eth.src = self.router_ports[dpid][out_port]
+                pkt_eth.dst = self.ip_to_mac[dpid][pkt_arp.src_ip]
+                self.send_packet(msg.datapath,out_port,pkt)
+                self.logger.info("Router %s sent queued packet from %s to %s", dpid, pkt_v4.src, pkt_v4.dst)
 
-    
-                #cycle through all packets to this ip and forward them
-                return
-            else:
-                self.logger.info("\nARP Packet dropped router %s, %s not an interface ip", dpid, pkt_arp.dst_ip)
-                
-                #Any other case pass
-                return
+
+            #cycle through all packets to this ip and forward them
+            return
+        else:
+            self.logger.info("\nARP Packet dropped router %s, %s not an interface ip", dpid, pkt_arp.dst_ip)
+            
+            #Any other case pass
+            return
 
 
     def handle_icmp(self, msg, port, pkt_ethernet, pkt_ipv4, pkt_icmp):

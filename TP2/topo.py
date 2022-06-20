@@ -42,6 +42,13 @@ def topo():
     
     #links intra-Routers
   
+  
+      
+    net.addLink(r1, r2)
+    net.addLink(r1, r3)
+    net.addLink(r2, r3)
+    
+  
     #R&D Division - Network A
     net.addLink(r1, s1)
     net.addLink(s1, h1)
@@ -59,11 +66,7 @@ def topo():
     net.addLink(s3, h7)
     net.addLink(s3, h8)
     net.addLink(s3, h9)
-    
-    net.addLink(r1, r2)
-    net.addLink(r1, r3)
-    net.addLink(r2, r3)
-    
+  
 
 
     c0 = net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6633, protocols='OpenFlow13')
