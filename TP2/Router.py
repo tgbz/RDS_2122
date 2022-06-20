@@ -18,6 +18,7 @@ from ryu.lib.packet import tcp
 from ryu.lib.packet import udp
 from ryu.ofproto import ether
 import time
+
 ETHERNET = ethernet.ethernet.__name__
 IPV4 = ipv4.ipv4.__name__
 ARP = arp.arp.__name__
@@ -39,31 +40,40 @@ class SwitchL3(app_manager.RyuApp):
         - packet_queue: dicionario fila de pacotes arp
     """
 
-
     def __init__(self, *args, **kwargs):
         super(SwitchL3, self).__init__(*args, **kwargs)
-        self.ip_to_mac = {}
-        self.ip_to_mac = {}
-        self.ip_to_port = {  
-                            1:{'10.0.1.2':3, '10.0.1.3':3, '10.0.1.4':3,
-                               '10.0.2.50':1,
-                               '10.0.3.50':2,},
-                            2:{'10.0.1.51':1,
-                               '10.0.3.51':2,
-                               '10.0.2.2': 3, '10.0.2.3':3, '10.0.2.3':3},
-                            3: {'10.0.1.52':1,
-                                '10.0.2.52:':2,
-                                '10.0.3.2':3, '10.0.3.3':3, '10.0.3.4':3}
-                            }
-        self.router_ports = {}
-        self.router_ports_to_ip = {
-                                    1 :{3:'10.0.1.1', 1:'10.0.2.50', 2:'10.0.3.50'},
-                                    2 :{1:'10.0.1.51', 2:'10.0.3.51', 3:'10.0.2.1'}, 
-                                    3 :{1:'10.0.1.52', 2:'10.0.2.52', 3:'10.0.3.1'}
-                                  }
-        self.packet_queue = {}
- 
         
+        #Port1 -> Hosts
+        #Port2 -> R1-R2
+        #Port3 -> R1-R3
+        self.ip_to_port = dict()
+        self.ip_to_port[1] = {'10.0.1.2' : 3, '10.0.1.3' : 3, '10.0.1.4' : 3,
+                              '10.0.2.2' : 1, '10.0.2.3' : 1, '10.0.2.4' : 1,
+                              '10.0.3.2' : 2, '10.0.3.3' : 2, '10.0.3.4' : 2,}
+        
+        #Port1 -> Hosts
+        #Port2 -> R2-R1
+        #Port3 -> R2-R3
+        self.ip_to_port[2] = {'10.0.1.2' : 1, '10.0.1.3' : 1, '10.0.1.4' : 1,
+                              '10.0.2.2' : 3, '10.0.2.3' : 3, '10.0.2.4' : 3,
+                              '10.0.3.2' : 2, '10.0.3.3' : 2, '10.0.3.4' : 2,}
+        #Port1 -> Hosts
+        #Port2 -> R3-R1
+        #Port3 -> R3-R2
+        self.ip_to_port[3] = {'10.0.1.2' : 2, '10.0.1.3' : 2, '10.0.1.4' : 2,
+                              '10.0.2.2' : 1, '10.0.2.3' : 1, '10.0.2.4' : 1,
+                              '10.0.3.2' : 3, '10.0.3.3' : 3, '10.0.3.4' : 3,}
+        
+        self.router_ports_to_ip = dict()
+        self.router_ports_to_ip[1] = {1 : '10.0.4.1', 2 : '10.0.6.2', 3 : '10.0.1.1'}
+        self.router_ports_to_ip[2] = {1 : '10.0.4.2', 2 : '10.0.5.1', 3 : '10.0.2.1'}
+        self.router_ports_to_ip[2] = {1 : '10.0.5.2', 2 : '10.0.6.1', 3 : '10.0.3.1'}
+        
+        self.ip_to_mac = dict()
+        self.packet_queue = dict()
+        self.router_ports = dict()
+   
+
 
 
     """
@@ -108,6 +118,7 @@ class SwitchL3(app_manager.RyuApp):
                 print(f"Porta {p} tem endereço MAC: {self.router_ports[dpid][p]}")
                 print("Cada Port Corresponde a uma subnet")
         print("\n")
+        print(self.router_ports)
 
     #Adcionar flows
     def add_flow(self, datapath, priority, match, actions, buffer_id=None):
@@ -145,8 +156,6 @@ class SwitchL3(app_manager.RyuApp):
             return
         pkt_ipv4 = pkt.get_protocol(ipv4.ipv4)
         if pkt_ipv4:
-    
-       
             if pkt_ipv4.dst in self.router_ports_to_ip[dpid].values():
                 pkt_icmp = pkt.get_protocol(icmp.icmp)
                 if pkt_icmp:
@@ -174,7 +183,6 @@ class SwitchL3(app_manager.RyuApp):
 
                 else:
                     self.logger.info("\nPacket received by router %s from %s to %s (unknown destination)", dpid, pkt_ipv4.src, pkt_ipv4.dst)
-                    time.sleep(2)
                     self.send_icmp_unreachable(msg, port, pkt_ethernet, pkt_ipv4)
                     #Send ICMP network unreachable
                    
@@ -219,52 +227,52 @@ class SwitchL3(app_manager.RyuApp):
     def handle_arp(self, msg, port, pkt_ethernet, pkt_arp):
         #ARP packet handling.
         dpid = msg.datapath.id
-        print(self.router_ports_to_ip[dpid].values())
-        time.sleep(2)
-        if pkt_arp.dst_ip in self.router_ports_to_ip[dpid].values() and pkt_arp.opcode == arp.ARP_REQUEST:
 
-            self.logger.info("\nARP Request received by router %s from %s in port %s ", dpid, pkt_arp.src_ip, port)
+        for router in self.router_ports_to_ip:
+            if pkt_arp.dst_ip in self.router_ports_to_ip[router].values() and pkt_arp.opcode == arp.ARP_REQUEST:
+                print(pkt_arp.dst_ip)
+                self.logger.info("\nARP Request received by router %s from %s in port %s ", dpid, pkt_arp.src_ip, port)
 
-            port_mac = self.router_ports[dpid][port]
+                port_mac = self.router_ports[router][port]
 
-            pkt = packet.Packet()
-            pkt.add_protocol(ethernet.ethernet(ethertype=ether.ETH_TYPE_ARP,
-                                           dst=pkt_ethernet.src,
-                                           src=port_mac))
-            pkt.add_protocol(arp.arp(opcode=arp.ARP_REPLY,
-                                 src_mac=port_mac,
-                                 src_ip=pkt_arp.dst_ip,
-                                 dst_mac=pkt_arp.src_mac,
-                                 dst_ip=pkt_arp.src_ip))
-            self.send_packet(msg.datapath, port, pkt)
+                pkt = packet.Packet()
+                pkt.add_protocol(ethernet.ethernet(ethertype=ether.ETH_TYPE_ARP,
+                                            dst=pkt_ethernet.src,
+                                            src=port_mac))
+                pkt.add_protocol(arp.arp(opcode=arp.ARP_REPLY,
+                                    src_mac=port_mac,
+                                    src_ip=pkt_arp.dst_ip,
+                                    dst_mac=pkt_arp.src_mac,
+                                    dst_ip=pkt_arp.src_ip))
+                self.send_packet(msg.datapath, port, pkt)
 
-            self.logger.info("ARP Reply sent by router %s from port %s with MAC %s to %s", dpid, port, port_mac, pkt_arp.src_ip)
+                self.logger.info("ARP Reply sent by router %s from port %s with MAC %s to %s", dpid, port, port_mac, pkt_arp.src_ip)
 
-            return
-        elif pkt_arp.dst_ip in self.router_ports_to_ip[dpid].values() and pkt_arp.opcode == arp.ARP_REPLY:
-            self.logger.info("\nARP Reply received by router %s from %s with MAC %s", dpid, pkt_arp.src_ip, pkt_arp.src_mac)
-            self.ip_to_mac.setdefault(dpid, {})
-            self.ip_to_mac[dpid][pkt_arp.src_ip] = pkt_arp.src_mac
+                return
+            elif pkt_arp.dst_ip in self.router_ports_to_ip[router].values() and pkt_arp.opcode == arp.ARP_REPLY:
+                self.logger.info("\nARP Reply received by router %s from %s with MAC %s", dpid, pkt_arp.src_ip, pkt_arp.src_mac)
+                self.ip_to_mac.setdefault(dpid, {})
+                self.ip_to_mac[dpid][pkt_arp.src_ip] = pkt_arp.src_mac
 
-            for m in self.packet_queue[pkt_arp.src_ip]:
-                dpid = m.datapath.id        
-                pkt = packet.Packet(m.data)
-                pkt_eth = pkt.get_protocol(ethernet.ethernet)
-                pkt_v4 = pkt.get_protocol(ipv4.ipv4)
-                out_port = self.ip_to_port[dpid][pkt_arp.src_ip]
-                pkt_eth.src = self.router_ports[dpid][out_port]
-                pkt_eth.dst = self.ip_to_mac[dpid][pkt_arp.src_ip]
-                self.send_packet(msg.datapath,out_port,pkt)
-                self.logger.info("Router %s sent queued packet from %s to %s", dpid, pkt_v4.src, pkt_v4.dst)
+                for m in self.packet_queue[dpid][pkt_arp.src_ip]:
+                    dpid = m.datapath.id        
+                    pkt = packet.Packet(m.data)
+                    pkt_eth = pkt.get_protocol(ethernet.ethernet)
+                    pkt_v4 = pkt.get_protocol(ipv4.ipv4)
+                    out_port = self.ip_to_port[dpid][pkt_arp.src_ip]
+                    pkt_eth.src = self.router_ports[dpid][out_port]
+                    pkt_eth.dst = self.ip_to_mac[dpid][pkt_arp.src_ip]
+                    self.send_packet(msg.datapath,out_port,pkt)
+                    self.logger.info("Router %s sent queued packet from %s to %s", dpid, pkt_v4.src, pkt_v4.dst)
 
-  
-            #cycle through all packets to this ip and forward them
-            return
-        else:
-            self.logger.info("\nARP Packet dropped router %s, %s not an interface ip", dpid, pkt_arp.dst_ip)
-            
-            #Any other case pass
-            return
+    
+                #cycle through all packets to this ip and forward them
+                return
+            else:
+                self.logger.info("\nARP Packet dropped router %s, %s not an interface ip", dpid, pkt_arp.dst_ip)
+                
+                #Any other case pass
+                return
 
 
     def handle_icmp(self, msg, port, pkt_ethernet, pkt_ipv4, pkt_icmp):
@@ -345,4 +353,3 @@ class SwitchL3(app_manager.RyuApp):
         self.send_packet(msg.datapath, port, pkt)
 
         self.logger.info("Router %s sending ICMP Destination Unreachable to %s", msg.datapath.id, pkt_ipv4.src)
-

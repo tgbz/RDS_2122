@@ -198,6 +198,7 @@ class SwitchL3(app_manager.RyuApp):
 
     #Gerir arp requests
     def handle_arp(self, msg, port, pkt_ethernet, pkt_arp):
+
         #ARP packet handling.
         dpid = msg.datapath.id
 

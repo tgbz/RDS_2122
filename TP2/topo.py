@@ -41,10 +41,7 @@ def topo():
     #web.cmd('web python -m http.server 5555 &')
     
     #links intra-Routers
-    net.addLink(r1, r2)
-    net.addLink(r1, r3)
-    net.addLink(r2, r3)
-    
+  
     #R&D Division - Network A
     net.addLink(r1, s1)
     net.addLink(s1, h1)
@@ -62,31 +59,13 @@ def topo():
     net.addLink(s3, h7)
     net.addLink(s3, h8)
     net.addLink(s3, h9)
-        
-        
-    #addr intra-routers
-    r1.cmd('ifconfig r1-eth1 0')
-    r1.cmd('ifconfig r1-eth2 0')
-    r1.cmd('ifconfig r1-eth3 0')
-    r1.cmd('ip addr 10.0.2.50/24 brd + dev r1-eth1') #Link R1-R2
-    r1.cmd('ip addr 10.0.3.50/24 brd + dev r1-eth2') #Link R1-R3
-    r1.cmd('ip addr 10.0.1.1/24 brd + dev r1-eth3') #Link R1-S1
     
-    r2.cmd('ifconfig r2-eth1 0')
-    r2.cmd('ifconfig r2-eth2 0')
-    r2.cmd('ifconfig r2-eth3 0')
-    r2.cmd('ip addr 10.0.2.51/24 brd + dev r1-eth1') #Link R1-R2
-    r2.cmd('ip addr 10.0.3.51/24 brd + dev r1-eth2') #Link R2-R3
-    r2.cmd('ip addr 10.0.2.1/24 brd + dev r1-eth3') #Link R2-S2
+    net.addLink(r1, r2)
+    net.addLink(r1, r3)
+    net.addLink(r2, r3)
     
-    r3.cmd('ifconfig r1-eth1 0')
-    r3.cmd('ifconfig r1-eth2 0')
-    r3.cmd('ifconfig r1-eth3 0')
-    r3.cmd('ip addr 10.0.3.52/24 brd + dev r1-eth1') #Link R1-R3
-    r3.cmd('ip addr 10.0.3.52/24 brd + dev r1-eth2') #Link R2-R3
-    r3.cmd('ip addr 10.0.3.1/24 brd + dev r1-eth3') #Link R3-S2
-    
-    
+
+
     c0 = net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6633, protocols='OpenFlow13')
     c1 = net.addController('c1', controller=RemoteController, ip='127.0.0.1', port=6634, protocols='OpenFlow13')
     
