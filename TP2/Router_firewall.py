@@ -114,11 +114,8 @@ class SwitchL3(app_manager.RyuApp):
             self.add_flow(datapath, 40000, match, actions)
             
             
-            
-            
-            actions = []
-            
             #bloquear tráfego intra subnets
+            actions = []
             match = parser.OFPMatch(eth_type = ether_types.ETH_TYPE_IP,
                                     ipv4_dst = ('10.0.2.0', '255.255.255.0'), ipv4_src = ('10.0.1.0', '255.255.255.0'))
             self.add_flow(datapath, 30000, match, actions)
@@ -126,19 +123,20 @@ class SwitchL3(app_manager.RyuApp):
             match = parser.OFPMatch(eth_type = ether_types.ETH_TYPE_IP,
                                     ipv4_dst = ('10.0.3.0', '255.255.255.0'), ipv4_src = ('10.0.1.0', '255.255.255.0'))
             self.add_flow(datapath, 30000, match, actions)
-            actions = []
+          
             
  
             
         
         elif datapath.id == 2:
             
-            #Permitir tráfego TCP HTTP de h5(webserver) para h1
-            match = datapath.ofproto_parser.OFPMatch(in_port = 3, eth_type = ether_types.ETH_TYPE_IP, ip_proto = 6, ipv4_src=('10.0.2.3','255.255.255.255'), ipv4_dst = ('10.0.1.2','255.255.255.255'), tcp_port=int(5555))
+           #Permitir tráfego TCP HTTP de h5(webserver) para h1
+            match = datapath.ofproto_parser.OFPMatch(in_port = 3, eth_type = ether_types.ETH_TYPE_IP, ip_proto = 6, ipv4_src=('10.0.2.3','255.255.255.255'), ipv4_dst = ('10.0.1.2','255.255.255.255'), tcp_src=int(5555))
             
             actions=[datapath.ofproto_parser.OFPActionSetField(eth_dst = '00:00:00:00:01:01'), datapath.ofproto_parser.OFPActionOutput(1)]
             self.add_flow(datapath,40000,match,actions)
             
+                       
             
             match = parser.OFPMatch(eth_type = ether_types.ETH_TYPE_IP,
                                     ipv4_dst = ('10.0.1.0', '255.255.255.0'), ipv4_src = ('10.0.2.0', '255.255.255.0'))
@@ -147,16 +145,16 @@ class SwitchL3(app_manager.RyuApp):
             match = parser.OFPMatch(eth_type = ether_types.ETH_TYPE_IP,
                                     ipv4_dst = ('10.0.3.0', '255.255.255.0'), ipv4_src = ('10.0.2.0', '255.255.255.0'))
             self.add_flow(datapath, 30000, match, actions)
-            actions = []
+ 
         elif datapath.id == 3:
             
             #Permitir tráfego TCP HTTP de h9(webserver) para h1
-            match = datapath.ofproto_parser.OFPMatch(in_port = 3, eth_type = ether_types.ETH_TYPE_IP, ip_proto = 6, ipv4_src=('10.0.3.4','255.255.255.255'), ipv4_dst = ('10.0.1.1','255.255.255.255'), tcp_port=int(5555))
+            match = datapath.ofproto_parser.OFPMatch(in_port = 3, eth_type = ether_types.ETH_TYPE_IP, ip_proto = 6, ipv4_src=('10.0.3.4','255.255.255.255'), ipv4_dst = ('10.0.1.2','255.255.255.255'), tcp_src=int(5555))
             
             actions=[datapath.ofproto_parser.OFPActionSetField(eth_dst = '00:00:00:00:01:01'), datapath.ofproto_parser.OFPActionOutput(1)]
             self.add_flow(datapath,40000,match,actions)
             
-            actions = []
+          
             
             match = parser.OFPMatch(eth_type = ether_types.ETH_TYPE_IP,
                                     ipv4_dst = ('10.0.1.0', '255.255.255.0'), ipv4_src = ('10.0.3.0', '255.255.255.0'))
